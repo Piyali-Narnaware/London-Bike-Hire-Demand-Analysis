@@ -98,7 +98,7 @@ Run the reproducible R analysis from the repository root:
 Rscript monthly_forecast_backtest.R
 ```
 
-The script writes `forecast_backtest_predictions.csv` and `forecast_backtest_metrics.csv`. It checks daily date coverage, handles the repeated date only after verifying that the hire counts agree, and keeps the alternative training windows as sensitivity checks rather than presenting one as a production-ready model.
+The committed [forecast predictions](forecast_backtest_predictions.csv) and [forecast metrics](forecast_backtest_metrics.csv) show the monthly results. Rerunning the script regenerates both files. It checks daily date coverage, handles the repeated date only after verifying that the hire counts agree, and keeps the alternative training windows as sensitivity checks rather than presenting one as a production-ready model.
 
 ## Project Structure
 
