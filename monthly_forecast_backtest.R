@@ -21,25 +21,25 @@ if (anyNA(raw$date) || anyNA(raw$Hires)) {
 # The source contains one repeated date with the same hire count but conflicting
 # policy flags. Keep one hire observation for that date; policy analysis remains
 # in the original RMarkdown file.
-duplicate_check <- raw |>
-  group_by(date) |>
+duplicate_check <- raw %>%
+  group_by(date) %>%
   summarise(distinct_hire_counts = n_distinct(Hires), .groups = "drop")
 
 if (any(duplicate_check$distinct_hire_counts > 1)) {
   stop("A repeated date has conflicting Hires values; review before aggregation")
 }
 
-daily <- raw |>
-  arrange(date) |>
-  distinct(date, .keep_all = TRUE) |>
-  filter(date >= as.Date("2010-08-01")) |>
+daily <- raw %>%
+  arrange(date) %>%
+  distinct(date, .keep_all = TRUE) %>%
+  filter(date >= as.Date("2010-08-01")) %>%
   mutate(month = as.Date(format(date, "%Y-%m-01")))
 
 # July 2010 is excluded because the source starts on 30 July and is only a
 # partial month. All retained months should contain one daily record per date.
-month_coverage <- daily |>
-  group_by(month) |>
-  summarise(days_observed = n_distinct(date), .groups = "drop") |>
+month_coverage <- daily %>%
+  group_by(month) %>%
+  summarise(days_observed = n_distinct(date), .groups = "drop") %>%
   mutate(days_expected = as.integer(format(
     as.Date(paste0(format(month, "%Y-%m"), "-01")) + 32,
     "%d"
@@ -52,9 +52,9 @@ if (any(month_coverage$days_observed != month_coverage$days_expected)) {
   stop("A retained month has missing or duplicate daily observations; review before aggregation")
 }
 
-monthly <- daily |>
-  group_by(month) |>
-  summarise(hires = sum(Hires), .groups = "drop") |>
+monthly <- daily %>%
+  group_by(month) %>%
+  summarise(hires = sum(Hires), .groups = "drop") %>%
   arrange(month)
 
 expected_months <- seq(min(monthly$month), max(monthly$month), by = "month")
@@ -65,7 +65,7 @@ if (!identical(as.character(monthly$month), as.character(expected_months))) {
 # Hold out the final complete year available in the source.
 test_start <- as.Date("2022-10-01")
 h <- 12L
-test <- monthly |> filter(month >= test_start)
+test <- monthly %>% filter(month >= test_start)
 if (nrow(test) != h || max(test$month) != as.Date("2023-09-01")) {
   stop("Expected a 12-month test set from October 2022 to September 2023")
 }
@@ -92,23 +92,24 @@ metric_row <- function(name, actual, predicted) {
 }
 
 # Seasonal-naive benchmark: each month is forecast from the same month one year earlier.
-full_training <- monthly |> filter(month < test_start)
+full_training <- monthly %>% filter(month < test_start)
 seasonal_naive <- as.numeric(forecast::snaive(make_ts(full_training), h = h)$mean)
 
-fit_seasonal_trend <- function(training_data, label) {
-  model <- forecast::tslm(make_ts(training_data) ~ trend + season)
+fit_seasonal_trend <- function(training_data) {
+  series <- make_ts(training_data)
+  model <- forecast::tslm(series ~ trend + season)
   as.numeric(forecast::forecast(model, h = h)$mean)
 }
 
 # Main model uses all available pre-test months. The 5-year and 3-year windows
 # are sensitivity checks; they are not selected as a production model.
-pred_full <- fit_seasonal_trend(full_training, "full_history")
+pred_full <- fit_seasonal_trend(full_training)
 pred_5y <- fit_seasonal_trend(
-  full_training |> filter(month >= as.Date("2017-10-01")),
+  full_training %>% filter(month >= as.Date("2017-10-01")),
   "five_year_window"
 )
 pred_3y <- fit_seasonal_trend(
-  full_training |> filter(month >= as.Date("2019-10-01")),
+  full_training %>% filter(month >= as.Date("2019-10-01")),
   "three_year_window"
 )
 
