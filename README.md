@@ -70,6 +70,36 @@ All three COVID-era policies were associated with **statistically significant in
 
 ---
 
+## Monthly Demand Forecast Backtest
+
+The analysis now includes an out-of-sample monthly demand forecast using the existing daily hire dataset.
+
+- **Series:** Monthly hire totals from August 2010 to September 2023; July 2010 is excluded because the source starts on 30 July
+- **Duplicate-date handling:** One date appears twice with the same hire count but conflicting policy flags; the forecasting series keeps one hire observation for that date
+- **Test window:** October 2022 to September 2023, held out from model fitting
+- **Benchmark:** Seasonal-naive forecast using the same month from the previous year
+- **Model:** Seasonal-trend regression with a linear time trend and month effects
+- **Sensitivity checks:** The regression is refit on full-history, 5-year and 3-year training windows
+
+### Held-out results
+
+| Forecast | MAE (hires) | RMSE (hires) | MAPE |
+|---|---:|---:|---:|
+| Seasonal-naive benchmark | 299,603 | 331,406 | 41.78% |
+| Seasonal-trend regression, full history | 288,022 | 305,501 | 40.34% |
+| Seasonal-trend regression, 5-year window | 256,490 | 281,149 | 35.18% |
+| Seasonal-trend regression, 3-year window | 340,893 | 363,297 | 47.19% |
+
+The full-history regression lowered MAE by 3.9% and RMSE by 7.8% versus the seasonal-naive benchmark on this holdout. The 5-year window produced lower errors in this test, while the 3-year window performed worse. All versions overestimated total hires in the held-out year by at least 35%; the result shows that model performance is sensitive to the training window and that this single test year does not establish a reliable operational forecast.
+
+Run the reproducible R analysis from the repository root:
+
+```bash
+Rscript monthly_forecast_backtest.R
+```
+
+The script writes `forecast_backtest_predictions.csv` and `forecast_backtest_metrics.csv`. It checks daily date coverage, handles the repeated date only after verifying that the hire counts agree, and keeps the alternative training windows as sensitivity checks rather than presenting one as a production-ready model.
+
 ## Project Structure
 
 ```
@@ -89,8 +119,8 @@ All three COVID-era policies were associated with **statistically significant in
 ## Installation & Reproduce
 
 ```bash
-git clone https://github.com/Piyali-Narnaware/London-Bike-Hire-Demand-Analysis-.git
-cd London-Bike-Hire-Demand-Analysis-
+git clone https://github.com/Piyali-Narnaware/London-Bike-Hire-Demand-Analysis.git
+cd London-Bike-Hire-Demand-Analysis
 ```
 
 Open `london_bike_hire_covid_analysis.Rmd` in RStudio and **Knit to HTML**, or run:
