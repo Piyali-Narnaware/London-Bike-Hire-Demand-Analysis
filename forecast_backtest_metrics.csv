@@ -1,0 +1,5 @@
+model,MAE,RMSE,MAPE_percent
+Seasonal-naive benchmark,299602.92,331406.24,41.78
+Seasonal-trend regression — full history,288022.37,305501.46,40.34
+Seasonal-trend regression — 5-year window,256490.44,281148.97,35.18
+Seasonal-trend regression — 3-year window,340892.61,363296.72,47.19
