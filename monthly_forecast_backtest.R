@@ -39,11 +39,7 @@ daily <- raw %>%
 # partial month. All retained months should contain one daily record per date.
 month_coverage <- daily %>%
   group_by(month) %>%
-  summarise(days_observed = n_distinct(date), .groups = "drop") %>%
-  mutate(days_expected = as.integer(format(
-    as.Date(paste0(format(month, "%Y-%m"), "-01")) + 32,
-    "%d"
-  )))
+  summarise(days_observed = n_distinct(date), .groups = "drop")
 # Use calendar month lengths explicitly for a clear completeness check.
 month_coverage$days_expected <- as.integer(
   format(seq(month_coverage$month[1], by = "month", length.out = nrow(month_coverage) + 1)[-1] - 1, "%d")
@@ -105,12 +101,10 @@ fit_seasonal_trend <- function(training_data) {
 # are sensitivity checks; they are not selected as a production model.
 pred_full <- fit_seasonal_trend(full_training)
 pred_5y <- fit_seasonal_trend(
-  full_training %>% filter(month >= as.Date("2017-10-01")),
-  "five_year_window"
+  full_training %>% filter(month >= as.Date("2017-10-01"))
 )
 pred_3y <- fit_seasonal_trend(
-  full_training %>% filter(month >= as.Date("2019-10-01")),
-  "three_year_window"
+  full_training %>% filter(month >= as.Date("2019-10-01"))
 )
 
 actual <- test$hires
