@@ -649,9 +649,12 @@ The project now tests whether monthly hire demand can be forecast from historica
 
 The final 12 complete months, October 2022 to September 2023, are held out from model fitting. The comparison uses a seasonal-naive benchmark and a seasonal-trend regression. Three-, five-year and full-history training windows show how sensitive the results are to the amount of history used. This is a historical backtest, not a forecast of current demand.
 
-```{r forecast-backtest, results='hide', message=FALSE, warning=FALSE}
+```{r forecast-backtest-run, include=FALSE}
 invisible(capture.output(source("monthly_forecast_backtest.R")))
 backtest_metrics <- read.csv("forecast_backtest_metrics.csv")
+```
+
+```{r forecast-backtest-results}
 knitr::kable(backtest_metrics, digits = 2)
 ```
 
