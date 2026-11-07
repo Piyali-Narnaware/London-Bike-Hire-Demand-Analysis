@@ -643,9 +643,16 @@ anova(reg_model_eotho, reg_model_eotho_day)
 The test suggests that the interaction between eotho scheme and day when included improves the model significantly to predict the number of hired bikes. The higher f score (20.75) implies that day variable contributes in the hiring of the bike.
 The most significantly contributing variable is the month variable and therefore should be used.
 
+## Monthly Demand Forecast Backtest
 
+The project now tests whether monthly hire demand can be forecast from historical data. July 2010 is excluded because the dataset begins on 30 July. One repeated date is counted once in the forecasting series after confirming that both records have the same hire total.
 
+The final 12 complete months, October 2022 to September 2023, are held out from model fitting. The comparison uses a seasonal-naive benchmark and a seasonal-trend regression. Three-, five-year and full-history training windows show how sensitive the results are to the amount of history used. This is a historical backtest, not a forecast of current demand.
 
+```{r forecast-backtest, results='hide', message=FALSE, warning=FALSE}
+invisible(capture.output(source("monthly_forecast_backtest.R")))
+backtest_metrics <- read.csv("forecast_backtest_metrics.csv")
+knitr::kable(backtest_metrics, digits = 2)
+```
 
-
-
+On the held-out year, the full-history seasonal-trend regression achieved MAE of 288,022 hires and RMSE of 305,501, compared with 299,603 and 331,406 for the seasonal-naive benchmark. The 5-year window scored better on this test, while the 3-year window scored worse. All models overestimated total hires in the test period, so the results show sensitivity to the chosen training window and do not establish operational forecast accuracy.
