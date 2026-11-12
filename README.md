@@ -1,6 +1,6 @@
 # London Bike Hire Demand Analysis
 
-A time-series study of London's daily bike-hire demand from 2010 to 2023. The project examines seasonality and associations between COVID-era policy periods and hire volumes, then compares monthly forecasting methods on a held-out year.
+A time-series study of London's daily bike-hire demand from 2010 to 2023. The project examines seasonality and associations between COVID-era policy periods and hire volumes, compares monthly forecasting methods, and evaluates recovery methods on simulated missing-data blocks.
 
 This is a bike-share demand analysis. It does not use traffic survey counts or footage.
 
@@ -8,7 +8,8 @@ This is a bike-share demand analysis. It does not use traffic survey counts or f
 
 - How did hire volumes vary by season and across the study period?
 - Which COVID-era policy indicators were associated with changes in demand?
-- How did a seasonal-trend regression compare with a seasonal-naive benchmark on unseen months?
+- How did seasonal forecasting methods perform on unseen months?
+- How accurately can short, simulated gaps in daily hire data be recovered?
 
 ## Data and checks
 
@@ -18,21 +19,15 @@ The analysis combines the TfL bike-hire dataset with UK Government COVID policy 
 - July 2010 is excluded from monthly forecasting because it is incomplete
 - The source contains a repeated date with identical hire counts but conflicting policy flags; the forecast series keeps one hire observation for that date
 - The backtest checks date coverage and monthly completeness before fitting models
-- The backtest stops if required dates or hire values are missing; no interpolation or gap-filling is performed
+- The gap-recovery exercise first confirms complete daily coverage, then masks known values for evaluation
 
 ## Methods
 
 The policy analysis uses multiple linear regression and ANOVA with seasonal terms and policy indicators. Results describe statistical associations and do not establish that a policy caused a change in hire demand.
 
-The forecasting analysis aggregates daily hires to complete monthly totals. It compares:
+### Monthly forecast comparison
 
-1. A seasonal-naive benchmark using the same month from the prior year
-2. Seasonal-trend regression with a linear time trend and monthly effects, trained on the full available history
-3. The same regression fitted on five-year and three-year windows as sensitivity checks
-
-The final 12 months, October 2022 to September 2023, are held out from model fitting. MAE, RMSE and MAPE are calculated for that period.
-
-## Forecast results
+Daily hires are aggregated to complete monthly totals. The analysis compares a seasonal-naive benchmark with seasonal-trend regression using a linear time trend and monthly effects. The final 12 months, October 2022 to September 2023, are held out from model fitting. MAE, RMSE and MAPE are calculated for that period. Five-year and three-year training windows are sensitivity checks.
 
 | Model | MAE | RMSE | MAPE |
 |---|---:|---:|---:|
@@ -43,23 +38,51 @@ The final 12 months, October 2022 to September 2023, are held out from model fit
 
 On this holdout, the five-year window reduced MAE by 14.4% and RMSE by 15.2% against the seasonal-naive benchmark. All three regression windows overestimated total hires for the held-out year by at least 35%. The results show sensitivity to training-window choice and do not establish a reliable operational forecast.
 
-The policy models found statistically significant positive associations for selected COVID-era indicators. Seasonal terms were also important predictors. See the R Markdown report for coefficients, confidence intervals and model details.
+### Simulated missing-data recovery
+
+The source series has complete daily coverage after duplicate-date checks, so the recovery comparison uses simulated gaps rather than observed missing records. With seed 2026, the script masks 50 non-overlapping historical windows at each gap length and compares linear interpolation with a same-weekday prior-week baseline. The baseline repeats the previous week's value through longer gaps. Errors are pooled across masked days.
+
+| Gap length | Method | Windows | MAE | RMSE | WAPE |
+|---:|---|---:|---:|---:|---:|
+| 1 day | Linear interpolation | 50 | 3,894 | 5,318 | 15.38% |
+| 1 day | Same weekday, prior week | 50 | 5,074 | 7,617 | 20.04% |
+| 3 days | Linear interpolation | 50 | 4,850 | 6,131 | 18.38% |
+| 3 days | Same weekday, prior week | 50 | 5,704 | 7,766 | 21.61% |
+| 7 days | Linear interpolation | 50 | 5,675 | 7,540 | 20.60% |
+| 7 days | Same weekday, prior week | 50 | 5,342 | 7,531 | 19.39% |
+| 14 days | Linear interpolation | 50 | 5,602 | 7,470 | 22.41% |
+| 14 days | Same weekday, prior week | 50 | 5,877 | 8,149 | 23.51% |
+
+Linear interpolation had lower MAE for the one-, three- and 14-day simulated gaps; the prior-week baseline had slightly lower MAE for seven-day gaps. Neither method performed best at every gap length. These results apply to this bike-hire dataset and do not establish a method for traffic surveys.
+
+## Visuals
+
+![Monthly bike-hire demand](monthly_demand_pattern.png)
+
+The R Markdown report includes yearly trends, COVID-period comparisons, a policy timeline and demand distributions.
 
 ## Reproduce
 
-From the repository root:
+Run the forecast comparison from the repository root:
 
 ```bash
 Rscript monthly_forecast_backtest.R
 ```
 
-The script regenerates `forecast_backtest_predictions.csv` and `forecast_backtest_metrics.csv`. To render the full analysis:
+Run the simulated gap-recovery comparison:
+
+```bash
+pip install pandas numpy
+python gapfill_validation.py
+```
+
+Render the full policy analysis:
 
 ```r
 rmarkdown::render("london_bike_hire_covid_analysis.Rmd")
 ```
 
-Install the required R packages:
+Install the R packages:
 
 ```r
 install.packages(c("tidyverse", "ggplot2", "dplyr", "lubridate",
@@ -68,13 +91,15 @@ install.packages(c("tidyverse", "ggplot2", "dplyr", "lubridate",
 
 ## Repository contents
 
-- `london_bike_hire_covid_analysis.Rmd`: policy analysis and visualisations
-- `monthly_forecast_backtest.R`: reproducible monthly forecast comparison
+- `london_bike_hire_covid_analysis.Rmd`: policy analysis and charts
+- `london_bike_hire_covid_analysis.html`: rendered report
+- `monthly_forecast_backtest.R`: monthly forecast comparison
+- `gapfill_validation.py`: simulated missing-data recovery comparison
 - `London_COVID_bikes.csv`: daily hire counts and policy indicators
-- `forecast_backtest_metrics.csv`: held-out error metrics
-- `forecast_backtest_predictions.csv`: actual and predicted monthly hires
+- `forecast_backtest_metrics.csv` and `forecast_backtest_predictions.csv`: forecast outputs
+- `gapfill_validation_metrics.csv`: recovery comparison results
 - PNG files: supporting trend, period-comparison and distribution charts
 
 ## Scope and limitations
 
-The holdout covers one year, and the models materially overestimated total demand. The forecast comparison is an analytical exercise, not a production forecast. The dataset is bike-hire demand rather than classified road-traffic counts, and the project does not assess survey collection technologies, traffic-footage processing or missing-data interpolation.
+The forecast holdout covers one year, and the models materially overestimated total demand. The simulated gap exercise masks known bike-hire values; it is not evidence of experience with missing traffic-survey counts, data collection technologies, traffic footage or production interpolation methods.
