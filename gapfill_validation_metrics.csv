@@ -1,0 +1,9 @@
+gap_days,method,simulated_windows,masked_days,MAE_hires,RMSE_hires,WAPE_percent
+1,Linear interpolation,50,50,3893.95,5318.21,15.38
+1,"Same weekday, prior week",50,50,5073.84,7616.90,20.04
+3,Linear interpolation,50,150,4850.26,6131.18,18.38
+3,"Same weekday, prior week",50,150,5703.91,7765.63,21.61
+7,Linear interpolation,50,350,5675.22,7540.03,20.60
+7,"Same weekday, prior week",50,350,5342.09,7530.62,19.39
+14,Linear interpolation,50,700,5602.07,7470.18,22.41
+14,"Same weekday, prior week",50,700,5877.32,8149.23,23.51
