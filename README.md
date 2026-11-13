@@ -6,7 +6,7 @@ This is a bike-share demand analysis. It does not use traffic survey counts or f
 
 ## Why the analysis matters
 
-Bike-hire demand forecasts can inform planning for bike availability and operational capacity. A forecast with large systematic overestimation could lead to poor allocation decisions. This project therefore reports errors against a seasonal-naive benchmark rather than presenting a forecast as useful solely because a model can be fitted.
+Bike-hire demand forecasts can inform planning for bike availability and operational capacity. A forecast with large systematic overestimation could lead to poor allocation decisions. I compared forecasts with a seasonal-naive benchmark because a fitted model is not necessarily a useful forecast.
 
 ## Questions
 
