@@ -4,6 +4,10 @@ A time-series study of London's daily bike-hire demand from 2010 to 2023. The pr
 
 This is a bike-share demand analysis. It does not use traffic survey counts or footage.
 
+## Why the analysis matters
+
+Bike-hire demand forecasts can inform planning for bike availability and operational capacity. A forecast with large systematic overestimation could lead to poor allocation decisions. This project therefore reports errors against a seasonal-naive benchmark rather than presenting a forecast as useful solely because a model can be fitted.
+
 ## Questions
 
 - How did hire volumes vary by season and across the study period?
@@ -54,6 +58,12 @@ The source series has complete daily coverage after duplicate-date checks, so th
 | 14 days | Same weekday, prior week | 50 | 5,877 | 8,149 | 23.51% |
 
 Linear interpolation had lower MAE for the one-, three- and 14-day simulated gaps; the prior-week baseline had slightly lower MAE for seven-day gaps. Neither method performed best at every gap length. These results apply to this bike-hire dataset and do not establish a method for traffic surveys.
+
+## Operational interpretation
+
+The five-year training window performed best among the methods tested, but the holdout error remained substantial. I would not use these predictions to set staffing or fleet allocations without more backtesting, investigation of changing demand patterns and a clear tolerance for overforecasting.
+
+The gap-recovery comparison is a separate methodological check. It tests recovery of deliberately masked known values, not repair of actual missing observations. The [automated workflow](.github/workflows/validate-gapfill.yml) executes that Python validation; it does not independently rerun the R forecasting analysis.
 
 ## Visuals
 
